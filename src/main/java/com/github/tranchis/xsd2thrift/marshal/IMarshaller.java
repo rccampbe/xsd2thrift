@@ -30,6 +30,8 @@ public interface IMarshaller {
 
 	String writeHeader(String namespace);
 
+	String writeDocumentation(String documentation, boolean firstField);
+
 	String writeEnumHeader(String name);
 
 	String writeEnumValue(int order, String value);

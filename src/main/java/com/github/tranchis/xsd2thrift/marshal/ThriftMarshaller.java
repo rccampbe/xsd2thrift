@@ -93,6 +93,11 @@ public class ThriftMarshaller implements IMarshaller {
 	}
 
 	@Override
+	public String writeDocumentation(String documentation, boolean firstField) {
+		return "";
+	}
+
+	@Override
 	public String writeEnumHeader(String name) {
 		final String result = writeIndent() + "enum " + name + "\n{\n";
 		increaseIndent();

@@ -40,14 +40,18 @@ public class Field
 	private boolean required;
 	private boolean repeat;
 	private XmlString def;
+	private String documentation;
 
-	public Field(String name, String typeNamespace, String type, boolean repeat, XmlString def, boolean required)
+	public Field(String name, String typeNamespace, String type, boolean repeat, String documentation, XmlString def, boolean required)
 	{
 		this.name = name;
 		this.type = type;
 		this.required = required;
 		this.def = def;
 		this.repeat = repeat;
+		if (documentation != null && !documentation.equals("")) {
+			this.documentation = documentation;
+		}
 		this.typeNamespace = typeNamespace;
 	}
 
@@ -93,6 +97,11 @@ public class Field
 	public void setRepeat(boolean repeat)
 	{
 		this.repeat = repeat;
+	}
+
+	public String getDocumentation()
+	{
+		return this.documentation;
 	}
 
 	public XmlString getDef()

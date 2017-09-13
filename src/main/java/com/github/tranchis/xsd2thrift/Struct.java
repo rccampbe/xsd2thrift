@@ -41,19 +41,23 @@ public class Struct implements Comparable<Struct>
 	private String				name;
 	private String				namespace;
 	private String				parent;
+	private String				documentation;
 
-	public Struct(String name,String namespace)
+	public Struct(String name,String namespace, String documentation)
 	{
 		this.name = name;
 		this.namespace = namespace;
 		map = new TreeMap<String, Field>();
 		types = new TreeSet<String>();
 		orderedFields = new LinkedList<Field>();
+		if (documentation != null && !documentation.equals("")) {
+			this.documentation = documentation;
+		}
 	}
-    public void addField(String name, String type, boolean required, boolean repeat, XmlString def, Map<String, String> xsdMapping){
-        addField(name, null, type, required, repeat, def, xsdMapping);
+    public void addField(String name, String type, boolean required, boolean repeat, String documentation, XmlString def, Map<String, String> xsdMapping){
+        addField(name, null, type, required, repeat, documentation, def, xsdMapping);
     }
-	public void addField(String name, String namespace, String type, boolean required, boolean repeat, XmlString def, Map<String, String> xsdMapping)
+	public void addField(String name, String namespace, String type, boolean required, boolean repeat, String documentation, XmlString def, Map<String, String> xsdMapping)
 	{
 		Field	f;
 		
@@ -74,7 +78,7 @@ public class Struct implements Comparable<Struct>
 					type = "binary";
 				}
 			}
-			f = new Field(name,NamespaceConverter.convertFromSchema(namespace), type, repeat, def, required);
+			f = new Field(name,NamespaceConverter.convertFromSchema(namespace), type, repeat, documentation, def, required);
 			map.put(name, f);
 			orderedFields.add(f);
 			if(!type.equals(this.name))
@@ -152,4 +156,7 @@ public class Struct implements Comparable<Struct>
 		return name.compareTo(s.name);
 	}
 	
+	public String getDoucumetation() {
+		return this.documentation;
+	}
 }

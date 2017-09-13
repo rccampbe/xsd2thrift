@@ -36,8 +36,12 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.xml.sax.ErrorHandler;
+import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.Attributes;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.EntityResolver;
 
 import com.github.tranchis.xsd2thrift.marshal.IMarshaller;
 import com.sun.xml.xsom.XSAttGroupDecl;
@@ -55,6 +59,9 @@ import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
+import com.sun.xml.xsom.parser.AnnotationParser;
+import com.sun.xml.xsom.parser.AnnotationParserFactory;
+import com.sun.xml.xsom.parser.AnnotationContext;
 
 public class XSDParser implements ErrorHandler {
 	private File f;
@@ -68,6 +75,80 @@ public class XSDParser implements ErrorHandler {
 	private boolean nestEnums = true;
 	private int enumOrderStart = 1;
 	private boolean typeInEnums = true;
+
+	 private class XsdAnnotationParser extends AnnotationParser {
+		    private StringBuilder documentation = new StringBuilder();
+		    @Override
+		    public ContentHandler getContentHandler(AnnotationContext context,
+		    String parentElementName, ErrorHandler handler, EntityResolver resolver) {
+		        return new ContentHandler(){
+		            private boolean parsingDocumentation = false;
+		            @Override
+		            public void characters(char[] ch, int start, int length)
+		            throws SAXException {
+		                if(parsingDocumentation){
+		                    documentation.append(ch,start,length);
+		                }
+		            }
+		            @Override
+		            public void endElement(String uri, String localName, String name)
+		            throws SAXException {
+		                if(localName.equals("documentation")){
+		                    parsingDocumentation = false;
+		                }
+		            }
+		            @Override
+		            public void startElement(String uri, String localName,String name,
+		            Attributes atts) throws SAXException {
+		                if(localName.equals("documentation")){
+		                    parsingDocumentation = true;
+		                }
+		            }
+					@Override
+					public void endDocument() throws SAXException {
+					}
+
+					@Override
+					public void endPrefixMapping(String prefix) throws SAXException {
+					}
+
+					@Override
+					public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
+					}
+
+					@Override
+					public void processingInstruction(String target, String data) throws SAXException {
+					}
+
+					@Override
+					public void setDocumentLocator(Locator locator) {
+					}
+
+					@Override
+					public void skippedEntity(String name) throws SAXException {
+					}
+
+					@Override
+					public void startDocument() throws SAXException {
+					}
+
+					@Override
+					public void startPrefixMapping(String prefix, String uri) throws SAXException {
+					}
+		        };
+		    }
+		    @Override
+		    public Object getResult(Object existing) {
+		        return documentation.toString().trim();
+		    }
+		}
+
+	private class AnnotationFactory implements AnnotationParserFactory{
+		@Override
+		public AnnotationParser create() {
+			return new XsdAnnotationParser();
+		}
+	}
 
 	public XSDParser(String stFile) {
 		this.xsdMapping = new TreeMap<String, String>();
@@ -141,6 +222,7 @@ public class XSDParser implements ErrorHandler {
 
 		parser = new XSOMParser();
 		parser.setErrorHandler(this);
+		parser.setAnnotationParser(new AnnotationFactory());
 		parser.parse(f);
 
 		interpretResult(parser.getResult());
@@ -237,15 +319,25 @@ public class XSDParser implements ErrorHandler {
 		Set<String> usedInEnums;
 		int order;
 
+		if (st.getDoucumetation() != null) {
+			os(st.getNamespace()).write(
+					marshaller.writeDocumentation(st.getDoucumetation(), false).getBytes());
+		}
 		os(st.getNamespace()).write(
 				marshaller.writeStructHeader(escape(st.getName())).getBytes());
 		itf = orderedIteratorForFields(st.getFields());
 		usedInEnums = new TreeSet<String>();
 		order = 1;
+		boolean firstField = true;
 		while (itf.hasNext()) {
 			f = itf.next();
 			fname = f.getName();
 			type = f.getType();
+
+			if (f.getDocumentation() != null) {
+				os(st.getNamespace()).write(
+						marshaller.writeDocumentation(f.getDocumentation(), firstField).getBytes());
+			}
 
 			if (isNestEnums() && marshaller.isNestedEnums()
 					&& enums.containsKey(type) && !usedInEnums.contains(type)) {
@@ -287,6 +379,8 @@ public class XSDParser implements ErrorHandler {
 			os(st.getNamespace()).write(
 					marshaller.writeStructParameter(order, f.isRequired(),
 							f.isRepeat(), escape(fname), type).getBytes());
+
+			firstField = false;
 			order = order + 1;
 		}
 		os(st.getNamespace()).write(marshaller.writeStructFooter().getBytes());
@@ -345,10 +439,10 @@ public class XSDParser implements ErrorHandler {
 	private Struct createSuperObject() {
 		Struct st;
 
-		st = new Struct("UnspecifiedType", null);
+		st = new Struct("UnspecifiedType", null, null);
 
-		st.addField("baseObjectType", "string", true, false, null, xsdMapping);
-		st.addField("object", "binary", true, false, null, xsdMapping);
+		st.addField("baseObjectType", "string", true, false, "", null, xsdMapping);
+		st.addField("object", "binary", true, false, "", null, xsdMapping);
 
 		return st;
 	}
@@ -488,8 +582,13 @@ public class XSDParser implements ErrorHandler {
 		}
 		st = map.get(typeName);
 		if (st == null) {
+			String documentation = null;
+			if (cType.getAnnotation() != null) {
+				documentation = cType.getAnnotation().getAnnotation().toString();
+			}
 			st = new Struct(typeName,
-					NamespaceConverter.convertFromSchema(nameSpace));
+					NamespaceConverter.convertFromSchema(nameSpace),
+					documentation);
 			map.put(typeName, st);
 
 			parent = cType;
@@ -543,18 +642,22 @@ public class XSDParser implements ErrorHandler {
 	}
 
 	private void write(Struct st, XSAttributeDecl decl, boolean goingup) {
+		String documentation = null;
+		if (decl.getAnnotation() != null) {
+			documentation = decl.getAnnotation().getAnnotation().toString();
+		}
 		if (decl.getType().isRestriction()
 				&& (decl.getType().getName() == null || !basicTypes
 						.contains(decl.getType().getName()))) {
 			String typeName = processSimpleType(decl.getType(), decl.getName());
-			st.addField(decl.getName(), typeName, goingup, false,
+			st.addField(decl.getName(), typeName, goingup, false, documentation,
 					decl.getFixedValue(), xsdMapping);
 		} else if (decl.getType().isList()) {
 			st.addField(decl.getName(), decl.getType().asList().getItemType()
-					.getName(), goingup, true, null, xsdMapping);
+					.getName(), goingup, true, documentation, null, xsdMapping);
 		} else {
 			st.addField(decl.getName(), decl.getType().getName(), goingup,
-					false, decl.getFixedValue(), xsdMapping);
+					false, documentation, decl.getFixedValue(), xsdMapping);
 		}
 	}
 
@@ -591,12 +694,16 @@ public class XSDParser implements ErrorHandler {
 		while (it.hasNext()) {
 			att = it.next();
 			decl = att.getDecl();
+			String documentation = null;
+			if (decl.getAnnotation() != null) {
+				documentation = decl.getAnnotation().getAnnotation().toString();
+			}
 			if (decl.getType().getName() == null) {
 				if (decl.getType().isRestriction()) {
 					String typeName = processSimpleType(decl.getType(),
 							decl.getName());
 					st.addField(decl.getName(), typeName,
-							(goingup && att.isRequired()), false,
+							(goingup && att.isRequired()), false, documentation,
 							decl.getFixedValue(), xsdMapping);
 				}
 			} else {
@@ -667,6 +774,10 @@ public class XSDParser implements ErrorHandler {
 				if (term.isModelGroup()) {
 					write(st, term, goingup, xss);
 				} else if (term.isElementDecl()) {
+					String documentation = null;
+					if (term.asElementDecl().getAnnotation() != null) {
+						documentation = term.asElementDecl().getAnnotation().getAnnotation().toString();
+					}
 					if (term.asElementDecl().getType().getName() == null) {
 						final String typeName = processType(term
 								.asElementDecl().getType(), term
@@ -678,16 +789,16 @@ public class XSDParser implements ErrorHandler {
 						st.addField(term.asElementDecl().getName(), ns,
 								typeName, (goingup && p.getMinOccurs()
 										.intValue() != 0), p.getMaxOccurs()
-										.intValue() != 1, term.asElementDecl()
-										.getFixedValue(), xsdMapping);
+										.intValue() != 1, documentation,
+										term.asElementDecl().getFixedValue(), xsdMapping);
 					} else {
 						st.addField(term.asElementDecl().getName(),
 								term.asElementDecl().getType()
 										.getTargetNamespace(), term
 										.asElementDecl().getType().getName(),
 								(goingup && p.getMinOccurs().intValue() != 0),
-								p.getMaxOccurs().intValue() != 1, term
-										.asElementDecl().getFixedValue(),
+								p.getMaxOccurs().intValue() != 1, documentation, 
+								term.asElementDecl().getFixedValue(),
 								xsdMapping);
 					}
 				}

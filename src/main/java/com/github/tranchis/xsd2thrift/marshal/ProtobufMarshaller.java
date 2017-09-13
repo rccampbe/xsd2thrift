@@ -82,6 +82,26 @@ public class ProtobufMarshaller implements IMarshaller {
 	}
 
 	@Override
+	public String writeDocumentation(String documentation, boolean firstField) {
+		if (documentation != null && !documentation.isEmpty()) {
+			StringBuilder accumulator = new StringBuilder();
+			String lines[] = documentation.split("\\r?\\n");
+			if (!firstField) {
+				accumulator.append("\n");
+			}
+			for ( String line : lines) {
+				accumulator.append(writeIndent());
+				accumulator.append("// ");
+				accumulator.append(line.trim());
+				accumulator.append("\n");
+			}
+			return accumulator.toString();
+		} else {
+			return "";
+		}
+	}
+
+	@Override
 	public String writeEnumHeader(String name) {
 		final String result = writeIndent() + "enum " + name + "\n"
 				+ writeIndent() + "{\n";
