@@ -5,8 +5,8 @@ include "schemas_com_domain_common.thrift"
 
 struct personType
 {
-	1 : required schemas_com_domain_address.addressType address,
+	1 : required string name,
 	2 : required schemas_com_domain_common.country domicile,
-	3 : required string name,
+	3 : required schemas_com_domain_address.addressType address,
 }
 

@@ -12,7 +12,7 @@ message addressType
 	// Any lines of the address that are not city, postal code or country.  For example region, street name and building name/number.
 	required addressLinesType addressLines = 1;
 	required string city = 2;
-	required schemas.com.domain.common.country _country = 3;
-	required string postCode = 4;
+	required string postCode = 3;
+	required schemas.com.domain.common.country _country = 4;
 }
 

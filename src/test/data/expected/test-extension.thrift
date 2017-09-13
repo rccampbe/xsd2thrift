@@ -8,15 +8,14 @@ struct UnspecifiedType
 
 struct BaseObject
 {
-	1 : optional string description,
-	2 : required string name,
-	3 : optional string value,
+	1 : required string name,
+	2 : optional string description,
 }
 
 struct StringObject
 {
-	1 : optional string description,
-	2 : required string name,
+	1 : optional string name,
+	2 : optional string description,
 	3 : required string value,
 }
 

@@ -8,33 +8,33 @@ message UnspecifiedType
 
 message Datatypes
 {
-	required string a_NMTOKEN = 1;
-	required string a_NMTOKENS = 2;
-	required bytes a_base64Binary = 3;
-	required bool a_boolean = 4;
-	required bytes a_byte = 5;
-	required int32 a_date = 6;
-	required int64 a_dateTime = 7;
-	required double a_decimal = 8;
-	required double a_double = 9;
-	required float a_float = 10;
-	required bytes a_hexBinary = 11;
-	required int64 a_long = 12;
-	required sint64 a_negativeInteger = 13;
-	required int64 a_nonNegativeInteger = 14;
-	required sint64 a_nonPositiveInteger = 15;
-	required int64 a_positiveInteger = 16;
-	required int32 a_short = 17;
-	required string an_ID = 18;
-	required string an_IDREF = 19;
+	required int64 a_positiveInteger = 1;
+	required int32 an_int = 2;
+	required int64 an_integer = 3;
+	required sint64 a_negativeInteger = 4;
+	required int64 a_nonNegativeInteger = 5;
+	required sint64 a_nonPositiveInteger = 6;
+	required uint64 an_unsignedLong = 7;
+	required uint32 an_unsignedInt = 8;
+	required uint32 an_unsignedShort = 9;
+	required uint32 an_unsignedByte = 10;
+	required float a_float = 11;
+	required double a_double = 12;
+	required int32 a_short = 13;
+	required int64 a_long = 14;
+	required double a_decimal = 15;
+	required string an_ID = 16;
+	required string an_IDREF = 17;
+	required string a_NMTOKEN = 18;
+	required string a_NMTOKENS = 19;
 	required UnspecifiedType an_anySimpleType = 20;
 	required UnspecifiedType an_anyType = 21;
 	required UnspecifiedType an_anyURI = 22;
-	required int32 an_int = 23;
-	required int64 an_integer = 24;
-	required uint32 an_unsignedByte = 25;
-	required uint32 an_unsignedInt = 26;
-	required uint64 an_unsignedLong = 27;
-	required uint32 an_unsignedShort = 28;
+	required bool a_boolean = 23;
+	required bytes a_base64Binary = 24;
+	required bytes a_hexBinary = 25;
+	required bytes a_byte = 26;
+	required int32 a_date = 27;
+	required int64 a_dateTime = 28;
 }
 

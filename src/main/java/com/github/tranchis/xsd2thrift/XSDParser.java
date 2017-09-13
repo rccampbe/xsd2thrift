@@ -325,7 +325,7 @@ public class XSDParser implements ErrorHandler {
 		}
 		os(st.getNamespace()).write(
 				marshaller.writeStructHeader(escape(st.getName())).getBytes());
-		itf = orderedIteratorForFields(st.getFields());
+		itf = st.getFields().iterator();
 		usedInEnums = new TreeSet<String>();
 		order = 1;
 		boolean firstField = true;
@@ -591,6 +591,10 @@ public class XSDParser implements ErrorHandler {
 					documentation);
 			map.put(typeName, st);
 
+			// Processing inheritance before processing members retains ordering
+			// in that inherited types are included first.
+			processInheritance(st, cType, sset);
+
 			parent = cType;
 			while (parent != sset.getAnyType()) {
 				if (parent.isComplexType()) {
@@ -599,7 +603,6 @@ public class XSDParser implements ErrorHandler {
 				parent = parent.getBaseType();
 			}
 
-			processInheritance(st, cType, sset);
 			st.setParent(cType.getBaseType().getName());
 		}
 		return typeName;
@@ -712,12 +715,17 @@ public class XSDParser implements ErrorHandler {
 		}
 	}
 
-	private void processInheritance(Struct st, XSComplexType cType,
+	private void processInheritance(Struct st, XSType iType,
 			XSSchemaSet sset) {
+
+		// Stop when inheriting from anyType
+		if (iType.getBaseType() == sset.getAnyType()) {
+			return;
+		}
+
 		Iterator<XSType> ity;
 		XSType xt;
 		XSParticle particle;
-		XSComplexType type;
 		Iterator<? extends XSAttributeUse> itau;
 		XSAttributeUse att;
 		XSAttributeDecl decl;
@@ -726,32 +734,47 @@ public class XSDParser implements ErrorHandler {
 		ity = sset.iterateTypes();
 		while (ity.hasNext()) {
 			xt = ity.next();
-			if (xt.getBaseType() == cType) {
+			if (xt == iType.getBaseType()
+				&& xt != sset.getAnyType()
+				&& xt != sset.getAnySimpleType()) {
 				// NOTE: the below code is almost identical to the contents of
 				// the write() function which takes an XSComplexType argument -
 				// the only difference is in the "goingup" variable passed to
 				// the other write() functions internally
-				
-				type = xt.asComplexType();
-				
-				particle = type.getContentType().asParticle();
-				if (particle != null) {
-					write(st, particle.getTerm(), false, sset);
-				}
 
-				itagd = type.getAttGroups().iterator();
-				while (itagd.hasNext()) {
-					write(st, itagd.next(), false);
-				}
+				if (xt instanceof XSComplexType) {
+					XSComplexType cType = xt.asComplexType();
+					cType = xt.asComplexType();
 
-				itau = type.getAttributeUses().iterator();
-				while (itau.hasNext()) {
-					att = itau.next();
-					decl = att.getDecl();
-					write(st, decl, false);
-				}
+					// Process further inheritance first to get fields in the right
+					// order, the further down the hierarchy at the top.
+					processInheritance(st, xt, sset);
 
-				processInheritance(st, xt.asComplexType(), sset);
+					particle = cType.getContentType().asParticle();
+					if (particle != null) {
+						write(st, particle.getTerm(), false, sset);
+					}
+
+					itagd = cType.getAttGroups().iterator();
+					while (itagd.hasNext()) {
+						write(st, itagd.next(), false);
+					}
+
+					itau = cType.getAttributeUses().iterator();
+					while (itau.hasNext()) {
+						att = itau.next();
+						decl = att.getDecl();
+						write(st, decl, false);
+					}
+				} else if (xt instanceof XSSimpleType) {
+					XSSimpleType sType = xt.asSimpleType();
+
+					// For simple types we just include the inherited field as a value
+					String typeName = processSimpleType(sType, null);
+					st.addField("value", typeName,	false, false, null,
+							null, xsdMapping);
+
+				}
 			}
 		}
 	}

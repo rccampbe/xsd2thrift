@@ -13,11 +13,11 @@ message categoryType
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
 	optional UnspecifiedType base = 1;
-	optional string label = 2;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 3;
+	optional string lang = 2;
+	optional string label = 3;
 	optional UnspecifiedType scheme = 4;
 	required string term = 5;
 }
@@ -33,60 +33,68 @@ message contentType
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
 	optional string lang = 2;
-	optional UnspecifiedType src = 3;
-	optional string type = 4;
+	optional string type = 3;
+	optional UnspecifiedType src = 4;
 }
 
 message dateTimeType
 {
+	optional int64 value = 1;
+
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 1;
+	optional UnspecifiedType base = 2;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 2;
+	optional string lang = 3;
 }
 
 
 // The Atom generator element is defined in section 4.2.4 of the format spec.
 message generatorType
 {
+	optional string value = 1;
+
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 1;
+	optional UnspecifiedType base = 2;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 2;
-	optional UnspecifiedType uri = 3;
-	optional string version = 4;
+	optional string lang = 3;
+	optional UnspecifiedType uri = 4;
+	optional string version = 5;
 }
 
 
 // The Atom icon construct is defined in section 4.2.5 of the format spec.
 message iconType
 {
+	optional UnspecifiedType value = 1;
+
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 1;
+	optional UnspecifiedType base = 2;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 2;
+	optional string lang = 3;
 }
 
 
 // The Atom id construct is defined in section 4.2.6 of the format spec.
 message idType
 {
+	optional UnspecifiedType value = 1;
+
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 1;
+	optional UnspecifiedType base = 2;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 2;
+	optional string lang = 3;
 }
 
 
@@ -96,29 +104,31 @@ message linkType
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
 	optional UnspecifiedType base = 1;
-	required UnspecifiedType href = 2;
-	optional string hreflang = 3;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 4;
-	optional int64 length = 5;
+	optional string lang = 2;
+	optional int64 length = 3;
+	required UnspecifiedType href = 4;
+	optional string type = 5;
 	optional string rel = 6;
 	optional string title = 7;
-	optional string type = 8;
+	optional string hreflang = 8;
 }
 
 
 // The Atom logo construct is defined in section 4.2.8 of the format spec.
 message logoType
 {
+	optional UnspecifiedType value = 1;
+
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 1;
+	optional UnspecifiedType base = 2;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 2;
+	optional string lang = 3;
 }
 
 
@@ -143,29 +153,32 @@ message textType
 
 message uriType
 {
+	optional UnspecifiedType value = 1;
+
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 1;
+	optional UnspecifiedType base = 2;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 2;
+	optional string lang = 3;
 }
 
 
 // The Atom person construct is defined in section 3.2 of the format spec.
 message personType
 {
+	optional string name = 1;
+	optional uriType uri = 2;
+	optional string email = 3;
+
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 1;
-	optional string email = 2;
+	optional UnspecifiedType base = 4;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 3;
-	optional string name = 4;
-	optional uriType uri = 5;
+	optional string lang = 5;
 }
 
 
@@ -173,25 +186,25 @@ message personType
 message sourceType
 {
 	repeated personType author = 1;
+	repeated categoryType category = 2;
+	repeated personType contributor = 3;
+	optional generatorType generator = 4;
+	optional iconType icon = 5;
+	optional idType id = 6;
+	repeated linkType link = 7;
+	optional logoType logo = 8;
+	optional textType rights = 9;
+	optional textType subtitle = 10;
+	optional textType title = 11;
+	optional dateTimeType updated = 12;
 
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 2;
-	repeated categoryType category = 3;
-	repeated personType contributor = 4;
-	optional generatorType generator = 5;
-	optional iconType icon = 6;
-	optional idType id = 7;
+	optional UnspecifiedType base = 13;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 8;
-	repeated linkType link = 9;
-	optional logoType logo = 10;
-	optional textType rights = 11;
-	optional textType subtitle = 12;
-	optional textType title = 13;
-	optional dateTimeType updated = 14;
+	optional string lang = 14;
 }
 
 
@@ -199,25 +212,25 @@ message sourceType
 message entryType
 {
 	repeated personType author = 1;
+	repeated categoryType category = 2;
+	optional contentType content = 3;
+	repeated personType contributor = 4;
+	optional idType id = 5;
+	repeated linkType link = 6;
+	optional dateTimeType published = 7;
+	optional textType rights = 8;
+	optional textType source = 9;
+	optional textType summary = 10;
+	optional textType title = 11;
+	optional dateTimeType updated = 12;
 
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 2;
-	repeated categoryType category = 3;
-	optional contentType content = 4;
-	repeated personType contributor = 5;
-	optional idType id = 6;
+	optional UnspecifiedType base = 13;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 7;
-	repeated linkType link = 8;
-	optional dateTimeType published = 9;
-	optional textType rights = 10;
-	optional textType source = 11;
-	optional textType summary = 12;
-	optional textType title = 13;
-	optional dateTimeType updated = 14;
+	optional string lang = 14;
 }
 
 
@@ -225,25 +238,25 @@ message entryType
 message feedType
 {
 	repeated personType author = 1;
+	repeated categoryType category = 2;
+	repeated personType contributor = 3;
+	optional generatorType generator = 4;
+	optional iconType icon = 5;
+	optional idType id = 6;
+	repeated linkType link = 7;
+	optional logoType logo = 8;
+	optional textType rights = 9;
+	optional textType subtitle = 10;
+	optional textType title = 11;
+	optional dateTimeType updated = 12;
+	repeated entryType entry = 13;
 
 	// See http://www.w3.org/TR/xmlbase/ for
 	// information about this attribute.
-	optional UnspecifiedType base = 2;
-	repeated categoryType category = 3;
-	repeated personType contributor = 4;
-	repeated entryType entry = 5;
-	optional generatorType generator = 6;
-	optional iconType icon = 7;
-	optional idType id = 8;
+	optional UnspecifiedType base = 14;
 
 	// In due course, we should install the relevant ISO 2- and 3-letter
 	// codes as the enumerated possible values . . .
-	optional string lang = 9;
-	repeated linkType link = 10;
-	optional logoType logo = 11;
-	optional textType rights = 12;
-	optional textType subtitle = 13;
-	optional textType title = 14;
-	optional dateTimeType updated = 15;
+	optional string lang = 15;
 }
 
