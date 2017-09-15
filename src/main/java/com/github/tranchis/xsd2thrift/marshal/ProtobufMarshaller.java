@@ -66,16 +66,15 @@ public class ProtobufMarshaller implements IMarshaller {
 											// 1970
 		typeMapping.put("dateTime", "int64"); // Number of milliseconds since
 												// January 1st, 1970
+		typeMapping.put("duration", "int64"); // Number of milliseconds
 	}
 
 	@Override
 	public String writeHeader(String namespace) {
-		String res;
-
+		String res = "syntax=\"proto" + Integer.toString(version) + "\";\n\n";
+		
 		if (namespace != null && !namespace.isEmpty()) {
-			res = "package " + namespace + ";\n\n";
-		} else {
-			res = "";
+			res = res + "package " + namespace + ";\n\n";
 		}
 
 		return res;
