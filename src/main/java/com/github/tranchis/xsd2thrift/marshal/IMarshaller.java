@@ -45,11 +45,17 @@ public interface IMarshaller {
 
 	String writeStructFooter();
 
+        String writeOneOfHeader();
+
+        String writeOneOfParameter(int order, String type);
+        
+        String writeOneOfFooter();
+
 	String getTypeMapping(String type);
 
 	boolean isNestedEnums();
 
 	boolean isCircularDependencySupported();
 
-	void setCustomMappings(Map<String, String> customMappings);
+	void setCustomMappings(Map<String, String> customMappings);       
 }

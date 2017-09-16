@@ -198,6 +198,7 @@ public class XSDParser implements ErrorHandler {
 		basicTypes.add("boolean");
 		basicTypes.add("date");
 		basicTypes.add("dateTime");
+                basicTypes.add("duration");
 		basicTypes.add("decimal");
 		basicTypes.add("float");
 		basicTypes.add("double");
@@ -319,77 +320,88 @@ public class XSDParser implements ErrorHandler {
 		Set<String> usedInEnums;
 		int order;
 
-		if (st.getDoucumetation() != null) {
+		if (st.getDocumetation() != null) {
 			os(st.getNamespace()).write(
-					marshaller.writeDocumentation(st.getDoucumetation(), false).getBytes());
+					marshaller.writeDocumentation(st.getDocumetation(), false).getBytes());
 		}
 		os(st.getNamespace()).write(
 				marshaller.writeStructHeader(escape(st.getName())).getBytes());
-		itf = st.getFields().iterator();
-		usedInEnums = new TreeSet<String>();
-		order = 1;
-		boolean firstField = true;
-		while (itf.hasNext()) {
-			f = itf.next();
-			fname = f.getName();
-			type = f.getType();
+                if (st.isAbstract()) {
+                        // For abstract classes we do not include any fields, just a union of the implementors
+                        order = 1;
+                        os(st.getNamespace()).write(marshaller.writeOneOfHeader().getBytes());
+                        for (String implementor : st.getImplementors()) {
+                                os(st.getNamespace()).write(marshaller.writeOneOfParameter(order, implementor).getBytes());
+                                order++;
+                        }
+                        os(st.getNamespace()).write(marshaller.writeOneOfFooter().getBytes());
+                } else {
+                        itf = st.getFields().iterator();
+                        usedInEnums = new TreeSet<String>();
+                        order = 1;
+                        boolean firstField = true;
+                        while (itf.hasNext()) {
+                                f = itf.next();
+                                fname = f.getName();
+                                type = f.getType();
 
-			System.out.println("Planning to write field " + fname + " type " + type);
+                                System.out.println("Planning to write field " + fname + " type " + type);
 			
-			if (f.getDocumentation() != null) {
-				os(st.getNamespace()).write(
-						marshaller.writeDocumentation(f.getDocumentation(), firstField).getBytes());
-			}
+                                if (f.getDocumentation() != null) {
+                                        os(st.getNamespace()).write(
+                                                                    marshaller.writeDocumentation(f.getDocumentation(), firstField).getBytes());
+                                }
 
-			if (isNestEnums() && marshaller.isNestedEnums()
-					&& enums.containsKey(type) && !usedInEnums.contains(type)) {
-				usedInEnums.add(type);
-				writeEnum(type);
-			}
+                                if (isNestEnums() && marshaller.isNestedEnums()
+                                    && enums.containsKey(type) && !usedInEnums.contains(type)) {
+                                        usedInEnums.add(type);
+                                        writeEnum(type);
+                                }
 
 
-			System.out.println("getting type " + type);
+                                System.out.println("getting type " + type);
 
-			if (simpleTypes.containsKey(type)) {
-				type = simpleTypes.get(type);
-			}
+                                if (simpleTypes.containsKey(type)) {
+                                        type = simpleTypes.get(type);
+                                }
 
-			if (!map.keySet().contains(type) && !basicTypes.contains(type)
-					&& !enums.containsKey(type)) {
-				type = "binary";
-			}
-			if (type.equals(fname)) {
-				fname = "_" + fname;
-			}
+                                if (!map.keySet().contains(type) && !basicTypes.contains(type)
+                                    && !enums.containsKey(type)) {
+                                        type = "binary";
+                                }
+                                if (type.equals(fname)) {
+                                        fname = "_" + fname;
+                                }
 
-			String typeNameSpace = "";
-			if (marshaller.getTypeMapping(type) != null) {
-				type = marshaller.getTypeMapping(type);
-				int qualifyingDot = type.lastIndexOf('.');
-				if (qualifyingDot > -1) {
-					typeNameSpace = type.substring(0, qualifyingDot + 1);
-					writer.addInclusion(st.getNamespace(),
-							type.substring(0, qualifyingDot));
-					type = type.substring(qualifyingDot + 1);
-				}
-			} else if (!basicTypes.contains(type)
-					&& f.getTypeNamespace() != null
-					&& !f.getTypeNamespace().equals(st.getNamespace())) {
-				typeNameSpace = f.getTypeNamespace() + ".";
-				writer.addInclusion(st.getNamespace(), f.getTypeNamespace());
-			}
+                                String typeNameSpace = "";
+                                if (marshaller.getTypeMapping(type) != null) {
+                                        type = marshaller.getTypeMapping(type);
+                                        int qualifyingDot = type.lastIndexOf('.');
+                                        if (qualifyingDot > -1) {
+                                                typeNameSpace = type.substring(0, qualifyingDot + 1);
+                                                writer.addInclusion(st.getNamespace(),
+                                                                    type.substring(0, qualifyingDot));
+                                                type = type.substring(qualifyingDot + 1);
+                                        }
+                                } else if (!basicTypes.contains(type)
+                                           && f.getTypeNamespace() != null
+                                           && !f.getTypeNamespace().equals(st.getNamespace())) {
+                                        typeNameSpace = f.getTypeNamespace() + ".";
+                                        writer.addInclusion(st.getNamespace(), f.getTypeNamespace());
+                                }
 
-			type = typeNameSpace + escapeType(type);
+                                type = typeNameSpace + escapeType(type);
 
-			System.out.println("Writing field " + fname + " type " + type);
+                                System.out.println("Writing field " + fname + " type " + type);
 			
-			os(st.getNamespace()).write(
-					marshaller.writeStructParameter(order, f.isRequired(),
-							f.isRepeat(), escape(fname), type).getBytes());
+                                os(st.getNamespace()).write(
+                                                            marshaller.writeStructParameter(order, f.isRequired(),
+                                                                                            f.isRepeat(), escape(fname), type).getBytes());
 
-			firstField = false;
-			order = order + 1;
-		}
+                                firstField = false;
+                                order = order + 1;
+                        }
+                }
 		os(st.getNamespace()).write(marshaller.writeStructFooter().getBytes());
 		declared.add(st.getName());
 	}
@@ -596,20 +608,26 @@ public class XSDParser implements ErrorHandler {
 					NamespaceConverter.convertFromSchema(nameSpace),
 					documentation);
 			map.put(typeName, st);
+                 
+                        // Processing inheritance before processing members retains ordering
+                        // in that inherited types are included first.
+                        processInheritance(st, cType, sset);
 
-			// Processing inheritance before processing members retains ordering
-			// in that inherited types are included first.
-			processInheritance(st, cType, sset);
+                        parent = cType;
+                        while (parent != sset.getAnyType()) {
+                                if (parent.isComplexType()) {
+                                        write(st, parent.asComplexType(), true, sset);
+                                }
+                                parent = parent.getBaseType();
+                        }
+                        
+                        st.setParent(cType.getBaseType().getName());
 
-			parent = cType;
-			while (parent != sset.getAnyType()) {
-				if (parent.isComplexType()) {
-					write(st, parent.asComplexType(), true, sset);
-				}
-				parent = parent.getBaseType();
-			}
-
-			st.setParent(cType.getBaseType().getName());
+                        // If this is an abstract type, then add the derived types as fields
+                        if (cType.isAbstract()) {
+                                st.setAbstract(true);
+                                writeImplementors(st, cType, sset);
+                        }
 		}
 		return typeName;
 	}
@@ -624,6 +642,12 @@ public class XSDParser implements ErrorHandler {
 		return String.format("Anonymous%03d", anonymousCounter);
 	}
 
+        private void writeImplementors(Struct st, XSComplexType type, XSSchemaSet sset) {
+                for (XSComplexType impl : type.getSubtypes()) {
+                        st.addImplementor( impl.getName() );
+                }
+        }
+        
 	private void write(Struct st, XSComplexType type, boolean goingup,
 			XSSchemaSet xss) {
 		XSParticle particle;

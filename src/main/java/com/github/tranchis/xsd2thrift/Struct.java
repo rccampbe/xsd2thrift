@@ -42,7 +42,9 @@ public class Struct implements Comparable<Struct>
 	private String				namespace;
 	private String				parent;
 	private String				documentation;
-
+        private boolean                         isAbstract;
+        private List<String>                    implementors;
+        
 	public Struct(String name,String namespace, String documentation)
 	{
 		this.name = name;
@@ -53,6 +55,7 @@ public class Struct implements Comparable<Struct>
 		if (documentation != null && !documentation.equals("")) {
 			this.documentation = documentation;
 		}
+                this.implementors = new LinkedList<String>();
 	}
     public void addField(String name, String type, boolean required, boolean repeat, String documentation, XmlString def, Map<String, String> xsdMapping){
         addField(name, null, type, required, repeat, documentation, def, xsdMapping);
@@ -156,7 +159,24 @@ public class Struct implements Comparable<Struct>
 		return name.compareTo(s.name);
 	}
 	
-	public String getDoucumetation() {
+	public String getDocumetation() {
 		return this.documentation;
+	}
+
+        public void setAbstract(boolean isAbstract) {
+                this.isAbstract = isAbstract;
+        }
+
+        public boolean isAbstract() {
+                return this.isAbstract;
+        }
+
+        public void addImplementor(String type) {
+                this.implementors.add(type);
+        }
+
+	public List<String> getImplementors()
+	{
+		return implementors;
 	}
 }

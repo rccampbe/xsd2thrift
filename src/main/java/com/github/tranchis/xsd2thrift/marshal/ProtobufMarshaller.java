@@ -64,9 +64,9 @@ public class ProtobufMarshaller implements IMarshaller {
 		typeMapping.put("byte", "bytes");
 		typeMapping.put("date", "int32"); // Number of days since January 1st,
 											// 1970
-		typeMapping.put("dateTime", "int64"); // Number of milliseconds since
+		typeMapping.put("dateTime", "google.protobuf.Timestamp"); // Number of milliseconds since
 												// January 1st, 1970
-		typeMapping.put("duration", "int64"); // Number of milliseconds
+		typeMapping.put("duration", "google.protobuf.Duration"); // Number of milliseconds
 	}
 
 	@Override
@@ -165,6 +165,30 @@ public class ProtobufMarshaller implements IMarshaller {
 		decreaseIndent();
 		return writeIndent() + "}\n\n";
 	}
+
+        @Override
+        public String writeOneOfHeader()
+        {
+                String header = writeIndent() + "oneof implementors {\n";
+                increaseIndent();
+                return header;
+        }
+ 
+        @Override
+        public String writeOneOfParameter(int order, String type)
+        {
+                // Use the type name as the variable, but lowercase the first char.
+                return writeIndent() + type
+                        + " " + Character.toLowerCase(type.charAt(0)) + type.substring(1)
+                        + " = " + Integer.toString(order) + ";\n";
+        }
+        
+        @Override
+        public String writeOneOfFooter()
+        {
+                decreaseIndent();
+                return writeIndent() + "}\n";
+        }
 
 	@Override
 	public String getTypeMapping(String type) {

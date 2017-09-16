@@ -162,6 +162,24 @@ public class ThriftMarshaller implements IMarshaller {
 		return writeIndent() + "}\n\n";
 	}
 
+        @Override
+        public String writeOneOfHeader()
+        {
+                return "";
+        }
+ 
+        @Override
+        public String writeOneOfParameter(int order, String type)
+        {
+                return "";
+        }
+        
+        @Override
+        public String writeOneOfFooter()
+        {
+                return "";
+        }
+        
 	@Override
 	public String getTypeMapping(String type) {
 		return typeMapping.get(type);

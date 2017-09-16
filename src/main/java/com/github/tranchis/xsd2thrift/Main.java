@@ -46,6 +46,7 @@ public class Main {
 			+ "  --customMappings=a:b,x:y    : represent schema types as specific output types\n"
 			+ "  --protobufVersion=2|3       : if generating protobuf, choose the version (2 or 3)\n"
 			+ "  --typeInEnums=true|false    : include type as a prefix in enums, defaults to true\n"
+			+ "  --stripSuffix=SUFFIX        : strip a suffix from all types\n"
 			+ "";
 
 	private static void usage(String error) {
