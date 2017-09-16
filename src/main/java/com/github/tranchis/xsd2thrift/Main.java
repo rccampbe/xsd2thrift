@@ -155,6 +155,9 @@ public class Main {
 					}
 				} else if (args[i].startsWith("--typeInEnums=")) {
 					xp.setTypeInEnums(Boolean.parseBoolean(args[i].split("=")[1]));
+				} else if (args[i].startsWith("--stripSuffix=")) {
+					param = args[i].split("=")[1];
+					pbm.setStripSuffix(param);
 				} else {
 					usage();
 				}

@@ -30,6 +30,7 @@ import java.util.TreeMap;
 public class ThriftMarshaller implements IMarshaller {
 	private TreeMap<String, String> typeMapping;
 	private String indent = "";
+        private String stripSuffix;
 
 	public ThriftMarshaller() {
 		typeMapping = new TreeMap<String, String>();
@@ -217,4 +218,13 @@ public class ThriftMarshaller implements IMarshaller {
 		}
 	}
 
+        @Override
+        public void setStripSuffix(String suffix) {
+                this.stripSuffix = suffix;
+        }
+
+        @Override
+        public String getStripSuffix() {
+                return this.stripSuffix;
+        }
 }

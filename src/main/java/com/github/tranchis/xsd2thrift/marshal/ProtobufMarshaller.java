@@ -31,7 +31,8 @@ public class ProtobufMarshaller implements IMarshaller {
 	private TreeMap<String, String> typeMapping;
 	private String indent = "";
 	private int version = 2;
-
+        private String stripSuffix = "";
+        
 	public ProtobufMarshaller() {
 		typeMapping = new TreeMap<String, String>();
 		typeMapping.put("positiveInteger", "int64");
@@ -102,7 +103,11 @@ public class ProtobufMarshaller implements IMarshaller {
 
 	@Override
 	public String writeEnumHeader(String name) {
-		final String result = writeIndent() + "enum " + name + "\n"
+                if (name.endsWith(stripSuffix)) {
+                        name = name.substring(0, name.lastIndexOf(stripSuffix));
+                }
+
+                final String result = writeIndent() + "enum " + name + "\n"
 				+ writeIndent() + "{\n";
 		increaseIndent();
 		return result;
@@ -121,6 +126,10 @@ public class ProtobufMarshaller implements IMarshaller {
 
 	@Override
 	public String writeStructHeader(String name) {
+                if (name.endsWith(stripSuffix)) {
+                        name = name.substring(0, name.lastIndexOf(stripSuffix));
+                }
+                
 		final String result = writeIndent() + "message " + name + "\n{\n";
 		increaseIndent();
 		return result;
@@ -131,6 +140,10 @@ public class ProtobufMarshaller implements IMarshaller {
 			boolean repeated, String name, String type) {
 		String sRequired = "";
 
+                if (type.endsWith(stripSuffix)) {
+                        type = type.substring(0, type.lastIndexOf(stripSuffix));
+                }
+                
 		// Only versions prior to 3 have required/optional
 		if (version < 3) {
 			sRequired = getRequired(required, repeated) + " ";
@@ -177,6 +190,10 @@ public class ProtobufMarshaller implements IMarshaller {
         @Override
         public String writeOneOfParameter(int order, String type)
         {
+                if (type.endsWith(stripSuffix)) {
+                        type = type.substring(0, type.lastIndexOf(stripSuffix));
+                }
+
                 // Use the type name as the variable, but lowercase the first char.
                 return writeIndent() + type
                         + " " + Character.toLowerCase(type.charAt(0)) + type.substring(1)
@@ -243,4 +260,14 @@ public class ProtobufMarshaller implements IMarshaller {
 	public void setProtobufVersion(int version) {
 		 this.version = version;
 	}
+
+        @Override
+        public void setStripSuffix(String suffix) {
+                this.stripSuffix = suffix;
+        }
+
+        @Override
+        public String getStripSuffix() {
+                return this.stripSuffix;
+        }
 }

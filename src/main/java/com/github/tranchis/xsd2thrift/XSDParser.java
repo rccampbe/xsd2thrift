@@ -420,7 +420,12 @@ public class XSDParser implements ErrorHandler {
 		int enumOrder = this.enumOrderStart;
 		String typePrefix;
 		if (typeInEnums) {
-			typePrefix = en.getName() + "_";
+                        String enumType = en.getName();
+                        if (enumType.endsWith(marshaller.getStripSuffix())) {
+                                enumType = type.substring(0, enumType.lastIndexOf(marshaller.getStripSuffix()));
+                        }
+                        
+			typePrefix = enumType + "_";
 		} else {
 			typePrefix = "";
 		}

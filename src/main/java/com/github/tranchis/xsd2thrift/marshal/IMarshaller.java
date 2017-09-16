@@ -58,4 +58,8 @@ public interface IMarshaller {
 	boolean isCircularDependencySupported();
 
 	void setCustomMappings(Map<String, String> customMappings);       
+
+        void setStripSuffix(String suffix);
+
+        String getStripSuffix();
 }
