@@ -72,10 +72,14 @@ public class ProtobufMarshaller implements IMarshaller {
 	public String writeHeader(String namespace) {
 		String res;
 
-		if (namespace != null && !namespace.isEmpty()) {
-			res = "package " + namespace + ";\n\n";
+		if (version == 3) {
+			res = "syntax = \"proto3\";\n\n";
 		} else {
 			res = "";
+		}
+
+		if (namespace != null && !namespace.isEmpty()) {
+			res += "package " + namespace + ";\n\n";
 		}
 
 		return res;
@@ -91,7 +95,7 @@ public class ProtobufMarshaller implements IMarshaller {
 
 	@Override
 	public String writeEnumValue(int order, String value) {
-		return (writeIndent() + value + " = " + order + ";\n");
+		return (writeIndent() + value.toUpperCase() + " = " + order + ";\n");
 	}
 
 	@Override

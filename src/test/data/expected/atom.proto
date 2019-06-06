@@ -73,9 +73,9 @@ message textType
 	optional string lang = 2;
 	enum typeType
 	{
-		typeType_html = 1;
-		typeType_text = 2;
-		typeType_xhtml = 3;
+		TYPETYPE_HTML = 1;
+		TYPETYPE_TEXT = 2;
+		TYPETYPE_XHTML = 3;
 	}
 	optional typeType type = 3;
 }
